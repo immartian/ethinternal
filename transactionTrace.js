@@ -11,7 +11,7 @@ async function getRawTrace(provider, txHash) {
     //   console.log(err);
     //   return [];
     // }
-    console.log('trace1');
+    console.log(result);
   });
   // if (!trace) {
   //   console.error('Trace not received from RPC server, please start geth with --rpcapi "eth,net,web3,debug" and without --fast');
@@ -35,7 +35,8 @@ async function getInternalTransfers(provider, txHash, txTo) {
     //   return [];
     // }
     const trace = result.result;
-    console.log(trace.structLogs.length + " structLogs found");
+    //console.log(trace);   /// it's correct already, TLDR;
+
     const stack = [{address: txTo}];
     const transfers = [];
     _(trace.structLogs).forEach(step => {
@@ -48,11 +49,13 @@ async function getInternalTransfers(provider, txHash, txTo) {
       if (step.depth === stack.length - 1) {
         // fix up CREATE dummy address
       }
-
+	
       switch (step.op) {
         case 'CALL': {
+
           const etherSent = parseInt(step.stack[step.stack.length - 3], 16);
           const recipientAddress = '0x' + step.stack[step.stack.length - 2].slice(-40);
+
           if (etherSent > 0) {
             transfers.push({
               etherSent,
@@ -63,6 +66,7 @@ async function getInternalTransfers(provider, txHash, txTo) {
             });
           }
           stack.push({address: recipientAddress});
+	  console.log (transfers);
           break;
         }
         case 'CREATE': {
