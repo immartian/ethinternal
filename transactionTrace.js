@@ -24,7 +24,7 @@ async function getRawTrace(provider, txHash) {
  * TODO: CREATE, CALLCODE, DELEGATECALL, SUICIDE
  */
 async function getInternalTransfers(provider, txHash, txTo) {
-  return await provider.send({
+  await provider.send({
     method: 'debug_traceTransaction',
     params: [txHash, {}],
     jsonrpc: '2.0',
@@ -66,7 +66,7 @@ async function getInternalTransfers(provider, txHash, txTo) {
             });
           }
           stack.push({address: recipientAddress});
-	  console.log (transfers);
+	  //console.log (transfers);
           break;
         }
         case 'CREATE': {
@@ -84,6 +84,7 @@ async function getInternalTransfers(provider, txHash, txTo) {
           break;
       }
     });
+    console.log(transfers);
     return transfers;
   });
 }
