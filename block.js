@@ -8,7 +8,7 @@ web3.setProvider(new web3.providers.HttpProvider('http://104.154.88.76:8545'));
 
 //const filter = web3.eth.filter("latest")
 //filter.watch(function (error, blockHash) {
-web3.eth.getBlock('0xa728b5495f55f3cdba5ee5f09cdf195726c4e77541ca35232935b221d50c3601').then(function(block) {
+web3.eth.getBlock('0x9d9567e735b38395cf1bc5b8292a638120dd4eca1f6bdc7c41da5e8e6aedc1c9').then(function(block) {
   console.log('Block #' + block.number);
   _(block.transactions).each(txHash => {
     console.log(txHash); 
