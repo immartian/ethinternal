@@ -18,6 +18,6 @@
   "homepage": "https://github.com/immartian/ethinternal#readme",
   "dependencies": {
     "lodash": "^4.17.15",
-    "web3": "1.0.0-beta.37"
+    "web3": "1.2.7"
   }
 }
