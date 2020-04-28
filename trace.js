@@ -10,7 +10,8 @@ web3.setProvider(new web3.providers.HttpProvider('http://35.221.208.98:8545'));
 //filter.watch(function (error, blockHash) {
 web3.eth.getBlock('0x69189bcefe487544baab63800ad372920fa8099bf8487ea3d16d6d034a828da1').then(async function(block) {
   console.log('Block #' + block.number);
-  await _(block.transactions).each(async function(txHash) {
+  for (let i = 0; i < block.transactions.length; i++) {
+    let txHash = block.transactions[i];
     console.log(txHash);
     let tx = await web3.eth.getTransaction(txHash).catch((e) => console.log('an error occured while getting the transaction'));
     let tr = await web3.eth.getTransactionReceipt(txHash);  // this one seems not returning well, promised?
@@ -21,11 +22,11 @@ web3.eth.getBlock('0x69189bcefe487544baab63800ad372920fa8099bf8487ea3d16d6d034a8
     //}
 
     let tfs = await trace.getInternalTransfers(web3.currentProvider, txHash, tx.to);
-    console.log(tfs);
+    // console.log(tfs);
     _(tfs).each(tf => {
       console.log(`  ${tf.senderAddress} -> ${tf.recipientAddress} (${tf.etherSent} wei)`);
     });
-  });
+  }
 }).catch(e => {
   console.log('an error occured:');
   console.log(e);
