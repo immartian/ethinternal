@@ -9,6 +9,25 @@ web3.setProvider(new web3.providers.HttpProvider('http://35.221.208.98:8545'));
 // first: 35.221.208.98
 //another endpoint:   35.200.37.219
 
+// How to use?
+// either run node trace.js transaction [txid] to see internal transactions for 1 transaction
+// or run node trace.js block [blockhash] to see transactions from the provided block
+
+function convert(n) {
+  var sign = +n < 0 ? '-' : '',
+      toStr = n.toString();
+  if (!/e/i.test(toStr)) {
+    return n;
+  }
+  var [lead, decimal, pow] = n.toString()
+      .replace(/^-/, '')
+      .replace(/^([0-9]+)(e.*)/, '$1.$2')
+      .split(/e|\./);
+  return +pow < 0
+      ? sign + '0.' + '0'.repeat(Math.max(Math.abs(pow) - 1 || 0, 0)) + lead + decimal
+      : sign + lead + (+pow >= decimal.length ? (decimal + '0'.repeat(Math.max(+pow - decimal.length || 0, 0))) : (decimal.slice(0, +pow) + '.' + decimal.slice(+pow)));
+}
+
 async function getInternalsFromBlock(bHash) {
   const block = await web3.eth.getBlock(bHash);
   console.log('Block #' + block.number);
@@ -23,29 +42,36 @@ async function getInternalsFromBlock(bHash) {
     //  console.log('   Contract created at ' + tr.contractAddress);
     //}
 
-    let tfs = await trace.getInternalTransfers(web3.currentProvider, txHash, tx.to);
-    // console.log(tfs);
-    _(tfs).each(tf => {
-      console.log(`  ${tf.senderAddress} -> ${tf.recipientAddress} (${tf.etherSent} wei)`);
-    });
+    await getInternalTransaction(txHash);
   }
+}
+
+async function getInternalTransaction(txHash) {
+  console.log('Transaction hash: ' + txHash);
+  console.log('Internal transactions');
+  let tx = await web3.eth.getTransaction(txHash).catch((e) => console.log('an error occured while getting the transaction'));
+
+  let tfs = await trace.getInternalTransfers(web3.currentProvider, txHash, tx.to);
+  // console.log(tfs);
+  _(tfs).each(tf => {
+    let weiAmount = convert(tf.etherSent);
+    let musicoinAmount = web3.utils.fromWei(weiAmount, 'ether');
+    console.log(`  ${tf.senderAddress} -> ${tf.recipientAddress} (${musicoinAmount} MUSIC)`);
+  });
 }
 
 (async () => {
 
-  let blockHash = '0x936b109ad813df99ae7b57c98c0019987eca8b986d2cd85b368620f561999532'; // (#2031)
-  await getInternalsFromBlock(blockHash);
+  console.log(process.argv[2]);
 
-  blockHash = '0xbce3f81ce2db539901e1c527369c1d3e928c3f58ebf817db42e90a64e366bb23'; // (#10930)
-  await getInternalsFromBlock(blockHash);
+  if (process.argv[2] === 'transaction') {
+    let transactionHash = process.argv[3];
+    await getInternalTransaction(transactionHash);
+  }
 
-  blockHash = '0x7077f0d7d9bf245c2656c8fcc62c27da27dc35e48b38a6b1fcb0e12c43a7f2e3'; // (#2000003)
-  await getInternalsFromBlock(blockHash);
-
-  blockHash = '0x07733e630839aa40b54bda914423cbcf288c5953c2ea84234056dfbe5e669db6';  //5,383,837
-  await getInternalsFromBlock(blockHash);
-
-  blockHash = '0x69189bcefe487544baab63800ad372920fa8099bf8487ea3d16d6d034a828da1';  // 6,193,845
-  await getInternalsFromBlock(blockHash);
+  if (process.argv[2] === 'block') {
+    let blockHash = process.argv[3];
+    await getInternalsFromBlock(blockHash);
+  }
 
 })();
